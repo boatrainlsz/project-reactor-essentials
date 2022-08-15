@@ -9,20 +9,35 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
+    <java.version>11</java.version>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <lombok.version>1.18.24</lombok.version>
+    <reactor-test.version>3.4.21</reactor-test.version>
+    <junit-jupiter-api.version>5.9.0</junit-jupiter-api.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>3.4.21</version>
+      <version>${reactor-test.version}</version>
     </dependency>
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-test</artifactId>
-      <version>3.4.21</version>
+      <version>${reactor-test.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit-jupiter-api.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
