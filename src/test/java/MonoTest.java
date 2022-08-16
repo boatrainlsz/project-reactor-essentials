@@ -55,13 +55,32 @@ public class MonoTest {
         Mono<Object> mono = Mono.just(name)
 //                .log()
                 .doOnSubscribe(subscription -> log.info("Subscribed"))
-                .doOnRequest(num -> log.info("Requested: {}", num))
-                .doOnNext(s -> log.info("Next: {}", s))
+                .doOnRequest(num -> log.info("Requested: {}", num)).doOnNext(s -> log.info("Next: {}", s))
                 .flatMap(s -> Mono.empty())
                 //这一行不会被执行，因为上一步传来了Mono.empty()
-                .doOnNext(s -> log.info("Next: {}", s))
-                .doOnSuccess(s -> log.info("Success: {}", s));
+                .doOnNext(s -> log.info("Next: {}", s)).doOnSuccess(s -> log.info("Success: {}", s));
         mono.subscribe(s -> log.info("Subscriber: {}", s), Throwable::printStackTrace, () -> log.info("Completed"),
                 subscription -> subscription.request(11));
+    }
+
+    @Test
+    public void monoOnError() {
+        Mono<Object> error =
+                Mono.error(new IllegalAccessException("sds")).doOnError(e -> log.info("Error: {}", e)).log();
+        StepVerifier.create(error).expectError(IllegalAccessException.class).verify();
+    }
+
+    @Test
+    public void monoOnErrorResume() {
+        String hello = "Hello";
+        Mono<Object> error =
+                Mono.error(new IllegalAccessException("sds"))
+                        .doOnError(e -> log.info("Error: {}", e))
+                        .onErrorResume(s -> {
+                            log.info("Inside Error Resume: {}", s);
+                            return Mono.just(hello);
+                        })
+                        .log();
+        StepVerifier.create(error).expectNext(hello).verifyComplete();
     }
 }
