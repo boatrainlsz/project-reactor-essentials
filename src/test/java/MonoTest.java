@@ -60,4 +60,18 @@ public class MonoTest {
         mono.subscribe(s -> log.info("Subscriber: {}", s), Throwable::printStackTrace, () -> log.info("Completed"),
                 subscription -> subscription.request(11));
     }
+
+    @Test
+    public void monoDoOnMethods() {
+        String name = "Taylor Swift";
+        Mono<String> mono = Mono.just(name)
+//                .log()
+                .doOnSubscribe(subscription -> log.info("Subscribed"))
+                .doOnRequest(num -> log.info("Requested: {}", num))
+                .doOnNext(s -> log.info("Next: {}", s))
+                .doOnSuccess(s -> log.info("Success: {}", s))
+                .map(String::toUpperCase);
+        mono.subscribe(s -> log.info("Subscriber: {}", s), Throwable::printStackTrace, () -> log.info("Completed"),
+                subscription -> subscription.request(11));
+    }
 }
