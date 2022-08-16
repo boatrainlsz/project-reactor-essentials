@@ -83,4 +83,20 @@ public class MonoTest {
                         .log();
         StepVerifier.create(error).expectNext(hello).verifyComplete();
     }
+
+    @Test
+    public void monoOnErrorReturn() {
+        String hello = "Hello";
+        Mono<Object> error =
+                Mono.error(new IllegalAccessException("sds"))
+                        .onErrorReturn("return early")
+                        //提前返回，所以以下都不会执行
+                        .doOnError(e -> log.info("Error: {}", e))
+                        .onErrorResume(s -> {
+                            log.info("Inside Error Resume: {}", s);
+                            return Mono.just(hello);
+                        })
+                        .log();
+        StepVerifier.create(error).expectNext("return early").verifyComplete();
+    }
 }
