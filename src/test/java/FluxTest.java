@@ -44,17 +44,22 @@ public class FluxTest {
         Flux<Integer> flux = Flux.range(1, 10).log();
         flux.subscribe(new Subscriber<Integer>() {
             private int count = 0;
+            private int requestCount = 2;
             private Subscription subscription;
 
             @Override
             public void onSubscribe(Subscription s) {
                 this.subscription = s;
-                subscription.request(2);
+                subscription.request(requestCount);
             }
 
             @Override
             public void onNext(Integer integer) {
-
+                count++;
+                if (count == requestCount) {
+                    count = 0;
+                    subscription.request(requestCount);
+                }
             }
 
             @Override
