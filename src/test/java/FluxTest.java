@@ -1,6 +1,8 @@
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -32,9 +34,39 @@ public class FluxTest {
             }
             return i;
         });
-        flux.subscribe(i -> log.info("{}", i), Throwable::printStackTrace, () -> log.info("Completed"));
-        StepVerifier.create(flux).expectNext(1, 2)
-                .expectError(RuntimeException.class)
-                .verify();
+        flux.subscribe(i -> log.info("{}", i), Throwable::printStackTrace, () -> log.info("Completed"),
+                subscription -> subscription.request(2));
+        StepVerifier.create(flux).expectNext(1, 2).expectError(RuntimeException.class).verify();
+    }
+
+    @Test
+    public void fluxSubscriberUglyBackpressure() {
+        Flux<Integer> flux = Flux.range(1, 10).log();
+        flux.subscribe(new Subscriber<Integer>() {
+            private int count = 0;
+            private Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription s) {
+                this.subscription = s;
+                subscription.request(2);
+            }
+
+            @Override
+            public void onNext(Integer integer) {
+
+            }
+
+            @Override
+            public void onError(Throwable t) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+        StepVerifier.create(flux).expectNext(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).verifyComplete();
     }
 }
