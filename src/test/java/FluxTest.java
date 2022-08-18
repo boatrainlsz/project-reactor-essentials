@@ -3,6 +3,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -43,8 +44,8 @@ public class FluxTest {
     public void fluxSubscriberUglyBackpressure() {
         Flux<Integer> flux = Flux.range(1, 10).log();
         flux.subscribe(new Subscriber<Integer>() {
+            private final int requestCount = 2;
             private int count = 0;
-            private int requestCount = 2;
             private Subscription subscription;
 
             @Override
@@ -70,6 +71,30 @@ public class FluxTest {
             @Override
             public void onComplete() {
 
+            }
+        });
+        StepVerifier.create(flux).expectNext(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).verifyComplete();
+    }
+
+    @Test
+    public void fluxSubscriberNotSoUglyBackpressure() {
+        Flux<Integer> flux = Flux.range(1, 10).log();
+        flux.subscribe(new BaseSubscriber<Integer>() {
+            private final int requestCount = 2;
+            private int count = 0;
+
+            @Override
+            protected void hookOnSubscribe(Subscription subscription) {
+                request(requestCount);
+            }
+
+            @Override
+            protected void hookOnNext(Integer value) {
+                count++;
+                if (count == requestCount) {
+                    count = 0;
+                    request(requestCount);
+                }
             }
         });
         StepVerifier.create(flux).expectNext(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).verifyComplete();
